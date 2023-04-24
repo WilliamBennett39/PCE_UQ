@@ -1,9 +1,14 @@
-from numba import njit, types, prange
+from numba import njit, types, prange, cfunc, carray
 import ctypes
+import numba
 from numba.extending import get_cython_function_address
+from numba.types import intc, CPointer, float64
 import numpy as np
 from scipy.stats import qmc
 from scipy.special import eval_hermitenorm
+import math
+from .interpolation_experiment import numba_splev
+from .marshak_ode import solve_marshak
 
 
 _dble = ctypes.c_double
@@ -142,4 +147,78 @@ def sampler_normal(n, coeffs, NN, sample):
         return_array[i] = a1*a2*a3*a4 
 
     return return_array
+@njit 
+def b_prod(x1, x2, x3, x4, l1, l2, l3, l4, basis):
+    return basis(l1, x1) * basis(l2, x2) * basis(l3, x3) * basis(l4, x4)
 
+# @njit 
+# def He_prod(x1, x2, x3, x4, l1, l2, l3, l4):
+#     return He(l1, x1) * He(l2, x2) * He(l3, x3) * He(l4, x4)
+@njit
+def Afunc(x1, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4):
+    Asq = (kappa0 + a2*x2) * (rho0 + a3*x3) * (cv + a4*x4) / (T0+a1*x1)**n / omega
+    return math.sqrt(Asq)
+
+@njit
+def interpolated_T(x, xmax, tt, c, k, equi_spaced, dx):
+    if 0 <= x <= xmax:
+        return numba_splev(x, tt, c, k, equi_spaced, dx)
+    else:
+        return np.array([0.0])
+
+
+def jit_F1(integrand_function):
+    jitted_function = numba.jit(integrand_function, nopython=True)
+    @cfunc(float64(intc, CPointer(float64)))
+    def wrapped(n, xx):
+        values = carray(xx,n)
+        return jitted_function(values)
+    return LowLevelCallable(wrapped.ctypes)
+
+
+# marshak_sol = solve_marshak(7/2)
+# interpolator_T_coeffs = custom_splrep(np.flip(marshak_sol.t), np.flip(marshak_sol.y[0]))
+
+# @jit_F1
+# def F1_Pn(args):
+#     x1 = args[0]
+#     x2 = args[1]
+#     x3 = args[3]
+#     x4 = args[4]
+#     x = args[5]
+#     t = args[6]
+#     T0 = args[7]
+#     kappa0 = args[8]
+#     rho0 = args[9]
+#     cv = args[10]
+#     omega = args[11]
+#     n = args[12]
+#     a1 = args[13]
+#     a2 = args[14]
+#     a3 = args[15]
+#     a4 = args[16]
+#     ximax = args[17]
+#     # interpolator_T_coeffs = args[18]
+#     l1 = args[19]
+#     l2 = args[20]
+#     l3 = args[21]
+#     l4 = args[22]
+#     l4 = args[23]
+
+#     xi = x * Afunc(x1, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4)/math.sqrt(t)
+#     integrand = (T0 + a1 * x1) * interpolated_T(xi, ximax, interpolator_T_coeffs) * b_prod(x1, x2, x3, x4, l1, l2, l3, l4, Pn)
+#     return integrand
+
+def F1(x1, x2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
+    xi = x * Afunc(x1, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4)/math.sqrt(t)
+    integrand = (T0 + a1 * x1) * interpolated_T(xi, ximax, tt, c, k, equi_spaced, dx) * b_prod(x1, x2, x3, x4, l1, l2, l3, l4, Pn)
+    return integrand
+
+def F2(x2, x3, x4, x1, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
+    xi = x * Afunc(x1, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4)/math.sqrt(t)
+    integrand = (T0 + a1 * x1) * interpolated_T(xi, ximax, tt, c, k, equi_spaced, dx) * b_prod(x1, x2, x3, x4, l1, l2, l3, l4, Pn)
+    return integrand
+# coeffs[i,j,k,m] = integrate.nquad(nb_integrand, [[-L,L], [-L, L], [-L,L]], args = (0, 0, 0, x, self.t, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax, self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m))[0]
+
+nb_integrand = cfunc("float64[:](float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, int64, float64, float64, float64, float64, float64, float64[:], float64[:], int64, int64, float64, int64, int64, int64, int64)")(F1)
+nb_integrand_2 = cfunc("float64[:](float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, int64, float64, float64, float64, float64, float64, float64[:], float64[:], int64, int64, float64, int64, int64, int64, int64)")(F2)

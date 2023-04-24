@@ -46,6 +46,7 @@ def sample_breakout_n(NSAMPLES=1024):
 
     NN = len(allcoeffs[0])
     n = int(math.log2(NSAMPLES))
+    np.random.seed(0)
     sample = np.random.normal(size = (2**n, 4))
 
     samples_drive_he = sampler_normal(n, drivecoeffs, NN, sample) * xdetector ** 2 
@@ -68,6 +69,17 @@ def sample_breakout_n(NSAMPLES=1024):
 
 
     return samples_drive_he,  samples_target_he,samples_all_he
+
+
+
+
+
+
+
+
+
+
+
 
 def save_results(drive, target, alls, name):
     # np.savetxt(name, sample_list)
