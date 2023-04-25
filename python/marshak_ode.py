@@ -25,11 +25,11 @@ def solve_marshak(n):
     RHSfun = lambda t,v: np.array([v[1], v[1]*(-v[0]**(-n)*t/(n+4) - (n+3)*v[0]**2*v[1])/(v[0]**3)])
 
 
-    tol = 1e-9
+    tol = 1e-10
     IC = [g(xmax-tol,xmax),gprime(xmax-tol,xmax)]
     output = integrate.DOP853(RHSfun, xmax,IC,0)
     opt_fun = lambda xm: integrate.solve_ivp(RHSfun, (xm-tol,0), [g(xm-tol,xm),gprime(xm-tol,xm)], method='DOP853', max_step = 1e-4).y[0][-1] - T0
-    minval = optimize.brentq(opt_fun, 1.0,1.3)
+    minval = optimize.brentq(opt_fun, 1.0,1.15)
     print(minval, 'minval')
 
     sol_marshak = integrate.solve_ivp(RHSfun, (minval-tol,0), IC, method='DOP853', max_step = 1e-4)
