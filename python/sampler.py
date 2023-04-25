@@ -3,6 +3,7 @@ from .functions import Pn, He, make_expansion_1d, sampler_sobol, sampler_normal
 import math
 import time
 from scipy.stats import qmc
+import h5py 
 
 def sample_breakout_u(NSAMPLES=1024):
     tic = time.perf_counter()
@@ -24,9 +25,7 @@ def sample_breakout_u(NSAMPLES=1024):
     print(np.mean(samples_target_pn), 'mean target')
     print(np.mean(samples_all_pn), 'mean all')
     
-    save_results(samples_drive_pn, "drive_samples_pn.csv")
-    save_results(samples_target_pn, "target_samples_pn.csv")
-    save_results(samples_all_pn, "all_samples_pn.csv")
+    save_results(samples_drive_pn, samples_target_pn, samples_all_pn, "pn_samples.hdf5")
     
     print('-- -- -- -- -- -- -- -- ')
     print(2**n, 'samples')
@@ -47,6 +46,7 @@ def sample_breakout_n(NSAMPLES=1024):
 
     NN = len(allcoeffs[0])
     n = int(math.log2(NSAMPLES))
+    np.random.seed(0)
     sample = np.random.normal(size = (2**n, 4))
 
     samples_drive_he = sampler_normal(n, drivecoeffs, NN, sample) * xdetector ** 2 
@@ -58,9 +58,8 @@ def sample_breakout_n(NSAMPLES=1024):
     print(np.mean(samples_target_he), 'mean target')
     print(np.mean(samples_all_he), 'mean all')
     
-    save_results(samples_drive_he, "drive_samples_he.csv")
-    save_results(samples_target_he, "target_samples_he.csv")
-    save_results(samples_all_he, "all_samples_he.csv")
+    save_results(samples_drive_he, samples_target_he, samples_all_he, "he_samples.hdf5")
+
     
     print('-- -- -- -- -- -- -- -- ')
     print(2**n, 'samples')
@@ -71,8 +70,25 @@ def sample_breakout_n(NSAMPLES=1024):
 
     return samples_drive_he,  samples_target_he,samples_all_he
 
-def save_results(sample_list, name):
-    np.savetxt(name, sample_list)
+
+
+
+
+
+
+
+
+
+
+
+def save_results(drive, target, alls, name):
+    # np.savetxt(name, sample_list)
+    f = h5py.File(name, 'w')
+    dset = f.create_dataset("results", (3,len(drive)))
+    dset[0] = drive
+    dset[1] = target
+    dset[2] = alls
+    f.close()
 
 
 
