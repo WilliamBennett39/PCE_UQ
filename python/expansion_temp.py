@@ -4,7 +4,7 @@ import scipy.interpolate as interpolate
 import math
 import h5py
 import time
-import quadpy
+# import quadpy
 
 from .marshak_ode import solve_marshak
 from .functions import b_prod, Afunc, Pn, He, interpolated_T, nb_integrand, nb_integrand_2, nb_integrand_He, nb_integrand_2_He
@@ -137,8 +137,8 @@ class coefficients_4d:
         self.c_He_target = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
         self.c_Pn_all = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
         self.c_He_all = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
-        xs_quad = quadpy.c1.gauss_legendre(int_pnts).points
-        ws_quad = quadpy.c1.gauss_legendre(int_pnts).weights
+        # xs_quad = quadpy.c1.gauss_legendre(int_pnts).points
+        # ws_quad = quadpy.c1.gauss_legendre(int_pnts).weights
         for ix, x in enumerate(self.xlist):
             print(ix/self.xlist.size * 100, "percent complete")
             print(x, 'x')
