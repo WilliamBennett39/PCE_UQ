@@ -8,7 +8,7 @@ import time
 
 from .marshak_ode import solve_marshak
 from .functions import b_prod, Afunc, Pn, He, interpolated_T, nb_integrand, nb_integrand_2, nb_integrand_He, nb_integrand_2_He
-from .functions import integrate_quad, quadruple_integral_nb_4, F1,  quadruple_integral_nb_1
+from .functions import integrate_quad, quadruple_integral_nb_4, F1,  quadruple_integral_nb_1, quadruple_integral_nb_3,  quadruple_integral_nb_4
 from .functions import quadruple_integral_nb_h4
 from .interpolation_experiment import custom_splrep
 import chaospy.quadrature as chaos_quad
@@ -106,7 +106,9 @@ class coefficients_4d:
                 # coeffs[i,j,k,m] = integrate.nquad(nb_integrand, [[-L,L]], args = (0, 0, 0, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m))[0]
                 coeffs[i,j,k,m] = quadruple_integral_nb_1(np.array([0.0]), 0.0, 0.0, xs_pnts, xs_ws, x, self.t, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m)
             elif basis == He:
-                coeffs[i,j,k,m] = integrate.nquad(nb_integrand_He, [[-L,L]], args = (0, 0, 0, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m))[0]
+                coeffs[i,j,k,m] = quadruple_integral_nb_h1(np.array([0.0]), 0.0, 0.0, xs_pnts, xs_ws, x, self.t, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m)
+
+                # coeffs[i,j,k,m] = integrate.nquad(nb_integrand_He, [[-L,L]], args = (0, 0, 0, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m))[0]
         return coeffs
     
     def integrate_coeffs_temp(self, x2, x3, x4, a1, a2, a3, a4, M, basis, L, x, i, j, k, m):
@@ -129,9 +131,13 @@ class coefficients_4d:
                 for m in range(M+1):
                     if basis == Pn:
                     # coeffs[i,j,k,m] = integrate.nquad(integrand, [[-L,L], [-L, L], [-L,L]], args = (0, i, j, k, m), opts = [opts0, opts0, opts0])[0]
-                        coeffs[i,j,k,m] = integrate.nquad(nb_integrand_2,[[-L,L], [-L, L], [-L,L]], args = (0, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m), opts = [opts0, opts0, opts0])[0]
+                        # coeffs[i,j,k,m] = integrate.nquad(nb_integrand_2,[[-L,L], [-L, L], [-L,L]], args = (0, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m), opts = [opts0, opts0, opts0])[0]
+                        coeffs[i,j,k,m] = quadruple_integral_nb_3(np.array([0.0]), xs_pnts, xs_ws, x, self.t, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m)
+
                     elif basis == He:
-                        coeffs[i,j,k,m] = integrate.nquad(nb_integrand_2_He,[[-L,L], [-L, L], [-L,L]], args = (0, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m), opts = [opts0, opts0, opts0])[0]
+                        # coeffs[i,j,k,m] = integrate.nquad(nb_integrand_2_He,[[-L,L], [-L, L], [-L,L]], args = (0, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m), opts = [opts0, opts0, opts0])[0]
+                        coeffs[i,j,k,m] = quadruple_integral_nb_h3(np.array([0.0]), xs_pnts, xs_ws, x, self.t, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m)
+
         return coeffs
 
     def make_all_coefficients_pn(self, M, int_pnts = 40):
@@ -147,7 +153,6 @@ class coefficients_4d:
         xs_quad, ws_quad = chaos_quad.legendre_proxy(int_pnts, domain =(-1,1))
         xs_quad = xs_quad[0]
         ws_quad = ws_quad[0]
-        print(xs_quad)
         for ix, x in enumerate(self.xlist):
             print(ix/self.xlist.size * 100, "percent complete")
             # print(x, 'x')
@@ -157,6 +162,8 @@ class coefficients_4d:
             # self.c_He_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
             # self.c_Pn_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x)
             # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
+            self.c_Pn_drive[ix] = self.integrate_coeffs_1d(self.a1, 0.0, 0.0, 0.0, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
+            self.c_Pn_target[ix] = self.integrate_coeffs_1d(0, self.a2, self.a3, self.a3, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
             self.c_Pn_all[ix] = self.integrate_coeffs_4d_2(self.a1, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
         print('elapsed', time.perf_counter()-tick)
 
@@ -170,7 +177,7 @@ class coefficients_4d:
         self.c_He_all = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
         xs_quad, ws_quad = chaos_quad.hermite(int_pnts)
         xs_quad = xs_quad[0]
-        ws_quad = ws_quad[0]
+        # ws_quad = ws_quad[0]
         for ix, x in enumerate(self.xlist):
             print(ix/self.xlist.size * 100, "percent complete")
             # print(x, 'x')
@@ -178,6 +185,8 @@ class coefficients_4d:
             # self.c_He_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
             # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
             self.c_He_all[ix] = self.integrate_coeffs_4d_2(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
+            self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
+            self.c_He_target[ix] = self.integrate_coeffs_3d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
         print('elapsed', time.perf_counter()-tick)
 
 
@@ -188,6 +197,9 @@ class coefficients_4d:
         NHe = int(M)
         blank_mat_pn = np.zeros((M+1, M+1, M+1, M+1))
         self.c_Pn_drive = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
+        xs_quad, ws_quad = chaos_quad.legendre_proxy(int_pnts, domain =(-1,1))
+        xs_quad = xs_quad[0]
+        ws_quad = ws_quad[0]
         for ix, x in enumerate(self.xlist):
             print(ix/self.xlist.size * 100, "percent complete")
             # print(x, 'x')

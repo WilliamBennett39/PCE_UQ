@@ -435,3 +435,22 @@ def quadruple_integral_nb_h4(xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a
 #     sqrt_pi = math.sqrt(math.pi)
 #     for iw in range(weights.size):
 #         weights[iw] = 2**(iw-1) * math.factorial(iw) * sqrt_pi / iw **2 / 
+
+
+# import chaospy.quadrature as chaos_quad
+# int_pnts = 50
+# xs_quad, ws_quad = chaos_quad.hermite(int_pnts)
+# xs_quad = xs_quad[0]
+# ws_quad = ws_quad
+# print(xs_quad, 'xs')
+# print(ws_quad,'ws')
+# print(np.shape(ws_quad), np.shape(xs_quad))
+# @njit
+# def exp_func(x,b):
+#     x_out = np.ones(x.size)
+#     return x_out 
+
+# print(np.shape(exp_func(xs_quad,0.0)))
+# # print("should be 1.0", integrate_quad_hermite(xs_quad, ws_quad, exp_func, args = (0.0)))
+# # print(np.sum(ws_quad * exp_func(xs_quad, 0.0)))
+# # print(np.sum(ws_quad))
