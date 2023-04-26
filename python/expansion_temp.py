@@ -8,13 +8,13 @@ import quadpy
 
 from .marshak_ode import solve_marshak
 from .functions import b_prod, Afunc, Pn, He, interpolated_T, nb_integrand, nb_integrand_2, nb_integrand_He, nb_integrand_2_He
-from .functions import integrate_quad, quadruple_integral_nb_4, F1
+from .functions import integrate_quad, quadruple_integral_nb_4, F1,  quadruple_integral_nb_1
 from .functions import quadruple_integral_nb_h4
 from .interpolation_experiment import custom_splrep
 import chaospy.quadrature as chaos_quad
 
 def opts0(*args, **kwargs):
-       return {'limit':50, 'epsabs':1.5e-10, 'epsrel':1.5e-10}
+       return {'limit':50, 'epsabs':1.5e-12, 'epsrel':1.5e-12}
 
 class coefficients_4d:
     def __init__(self):
@@ -45,6 +45,7 @@ class coefficients_4d:
         # self.c_He_all = np.zeros((NHe + 1, NHe + 1, NHe + 1, NHe + 1))
         # solve the Marshak ODE for given value of n
         self.sol_marshak()
+        self.save_marshak_sol()
     
         # self.interpolator_T = interpolate.interp1d(marshak_sol.t, marshak_sol.y[0], kind = 'cubic')
         self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx  = custom_splrep(np.flip(self.marshak_sol.t), np.flip(self.marshak_sol.y[0]))
@@ -176,22 +177,17 @@ class coefficients_4d:
 
 
 
-    def make_drive_coefficients(self, M):
+    def make_drive_coefficients_pn(self, M, int_pnts = 40):
         tick = time.perf_counter()
         NPn = int(M)
         NHe = int(M)
         blank_mat_pn = np.zeros((M+1, M+1, M+1, M+1))
         self.c_Pn_drive = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
-        self.c_He_drive = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
-        self.c_Pn_target = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
-        self.c_He_target = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
-        self.c_Pn_all = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
-        self.c_He_all = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
         for ix, x in enumerate(self.xlist):
             print(ix/self.xlist.size * 100, "percent complete")
             # print(x, 'x')
             self.c_Pn_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, Pn, blank_mat_pn, 1, x)
-            self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, He, blank_mat_pn, np.inf, x)
+            # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, He, blank_mat_pn, np.inf, x)
         print('elapsed', time.perf_counter()-tick)
 
     def save_pn(self):
@@ -211,6 +207,13 @@ class coefficients_4d:
         dset3 = f.create_dataset("all_He", data = self.c_He_all)
         dset4 = f.create_dataset("xlist", data = self.xlist)
         f.close()
+    
+    def save_marshak_sol(self):
+        f = h5py.File('marshak_sol.hdf5', 'w')
+        dset1 = f.create_dataset("xi", data = self.marshak_sol.t)
+        dset1 = f.create_dataset("T", data = self.marshak_sol.y[0])
+        f.close()
+
 
 
 
