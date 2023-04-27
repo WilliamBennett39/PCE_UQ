@@ -1,10 +1,10 @@
 #!/bin/bash
 #$ -M wbennet2@nd.edu
 #$ -m abe
-#$ -N M0
+#$ -N target_he
 #$ -q long
 
 
 module load python
-python3 coeff_4d_all_pn.py
+python3 coeff_4d_target_he.py
 

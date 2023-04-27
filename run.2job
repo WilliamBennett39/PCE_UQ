@@ -6,5 +6,5 @@
 
 
 module load python
-python3 coeff_4d_all_pn.py
+python3 coeff_4d_drive_pn.py
 

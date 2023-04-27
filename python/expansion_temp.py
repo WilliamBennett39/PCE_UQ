@@ -7,9 +7,9 @@ import time
 # import quadpy
 
 from .marshak_ode import solve_marshak
-from .functions import b_prod, Afunc, Pn, He, interpolated_T, nb_integrand, nb_integrand_2, nb_integrand_He, nb_integrand_2_He
+from .functions import b_prod, Afunc, Pn, He, interpolated_T, nb_integrand, nb_integrand_He, nb_integrand_2_He
 from .functions import integrate_quad, quadruple_integral_nb_4, F1,  quadruple_integral_nb_1, quadruple_integral_nb_3,  quadruple_integral_nb_4
-from .functions import quadruple_integral_nb_h4
+from .functions import quadruple_integral_nb_h4, quadruple_integral_nb_h1, quadruple_integral_nb_h3, triple_integral_nb_3
 from .interpolation_experiment import custom_splrep
 import chaospy.quadrature as chaos_quad
 
@@ -122,7 +122,7 @@ class coefficients_4d:
         return integrate.nquad(nb_integrand,[[left_bound, right_bound]], args = (x2, x3, x4, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m), opts = [opts0, opts0, opts0])[0]
 
 
-    def integrate_coeffs_3d(self, a1, a2, a3, a4, M, basis, coeffs, L, x):
+    def integrate_coeffs_3d(self, a1, a2, a3, a4, M, basis, coeffs, L, x, xs_pnts, xs_ws):
         dimensionalize = lambda x1, x2, x3, x4: (self.T0 + a1 * x1) * interpolated_T(x * Afunc(x1, x2, x3, x4, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4)/math.sqrt(self.t), self.ximax, self.interp_t, self.interp_c, self.interp_k,self.interp_equi_spaced, self.interp_dx)
         integrand = lambda x2, x3, x4, x1, l1, l2, l3, l4: dimensionalize(x1, x2, x3, x4) * b_prod(x1, x2, x3, x4, l1, l2, l3, l4, basis)
         i = 0 
@@ -132,7 +132,7 @@ class coefficients_4d:
                     if basis == Pn:
                     # coeffs[i,j,k,m] = integrate.nquad(integrand, [[-L,L], [-L, L], [-L,L]], args = (0, i, j, k, m), opts = [opts0, opts0, opts0])[0]
                         # coeffs[i,j,k,m] = integrate.nquad(nb_integrand_2,[[-L,L], [-L, L], [-L,L]], args = (0, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m), opts = [opts0, opts0, opts0])[0]
-                        coeffs[i,j,k,m] = quadruple_integral_nb_3(np.array([0.0]), xs_pnts, xs_ws, x, self.t, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m)
+                        coeffs[i,j,k,m] = triple_integral_nb_3(xs_pnts, xs_ws, x, self.t, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m)
 
                     elif basis == He:
                         # coeffs[i,j,k,m] = integrate.nquad(nb_integrand_2_He,[[-L,L], [-L, L], [-L,L]], args = (0, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m), opts = [opts0, opts0, opts0])[0]
@@ -144,6 +144,7 @@ class coefficients_4d:
         tick = time.perf_counter()
         NPn = int(M)
         NHe = int(M)
+        self.order_pn = int_pnts
         blank_mat_pn = np.zeros((M+1, M+1, M+1, M+1))
         self.c_Pn_drive = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
         self.c_Pn_target = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
@@ -152,7 +153,6 @@ class coefficients_4d:
         # ws_quad = quadpy.c1.gauss_legendre(int_pnts).weights
         xs_quad, ws_quad = chaos_quad.legendre_proxy(int_pnts, domain =(-1,1))
         xs_quad = xs_quad[0]
-        ws_quad = ws_quad[0]
         for ix, x in enumerate(self.xlist):
             print(ix/self.xlist.size * 100, "percent complete")
             # print(x, 'x')
@@ -162,15 +162,63 @@ class coefficients_4d:
             # self.c_He_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
             # self.c_Pn_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x)
             # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
-            self.c_Pn_drive[ix] = self.integrate_coeffs_1d(self.a1, 0.0, 0.0, 0.0, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
-            self.c_Pn_target[ix] = self.integrate_coeffs_1d(0, self.a2, self.a3, self.a3, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
+
+            # current 
+            # self.c_Pn_drive[ix] = self.integrate_coeffs_1d(self.a1, 0.0, 0.0, 0.0, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
+            # self.c_Pn_target[ix] = self.integrate_coeffs_3d(self.a1, self.a2, self.a3, self.a3, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
             self.c_Pn_all[ix] = self.integrate_coeffs_4d_2(self.a1, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
+        print('elapsed', time.perf_counter()-tick)
+
+    def make_target_coefficients_pn(self, M, int_pnts = 40):
+        tick = time.perf_counter()
+        NPn = int(M)
+        NHe = int(M)
+        self.order_pn = int_pnts
+        blank_mat_pn = np.zeros((M+1, M+1, M+1, M+1))
+        self.c_Pn_drive = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
+        self.c_Pn_target = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
+        self.c_Pn_all = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
+        # xs_quad = quadpy.c1.gauss_legendre(int_pnts).points
+        # ws_quad = quadpy.c1.gauss_legendre(int_pnts).weights
+        xs_quad, ws_quad = chaos_quad.legendre_proxy(int_pnts, domain =(-1,1))
+        xs_quad = xs_quad[0]
+        for ix, x in enumerate(self.xlist):
+            print(ix/self.xlist.size * 100, "percent complete")
+            # print(x, 'x')
+            # self.c_Pn_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, Pn, blank_mat_pn, 1, x)
+            # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, He, blank_mat_pn, np.inf, x)
+            # self.c_Pn_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x)
+            # self.c_He_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
+            # self.c_Pn_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x)
+            # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
+            self.c_Pn_target[ix] = self.integrate_coeffs_3d(self.a1, self.a2, self.a3, self.a3, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
+        print('elapsed', time.perf_counter()-tick)
+
+    def make_drive_coefficients_pn(self, M, int_pnts = 40):
+        tick = time.perf_counter()
+        NPn = int(M)
+        NHe = int(M)
+        blank_mat_pn = np.zeros((M+1, M+1, M+1, M+1))
+        self.c_Pn_drive = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
+        xs_quad, ws_quad = chaos_quad.legendre_proxy(int_pnts, domain =(-1,1))
+        xs_quad = xs_quad[0]
+  
+        print(ws_quad)
+        print(xs_quad)
+        for ix, x in enumerate(self.xlist):
+            print(ix/self.xlist.size * 100, "percent complete")
+            # print(x, 'x')
+            # self.c_Pn_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, Pn, blank_mat_pn, 1, x)
+            # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, He, blank_mat_pn, np.inf, x)
+            self.c_Pn_drive[ix] = self.integrate_coeffs_1d(self.a1, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
+
         print('elapsed', time.perf_counter()-tick)
 
     def make_all_coefficients_he(self, M, int_pnts = 40):
         tick = time.perf_counter()
         NPn = int(M)
         NHe = int(M)
+        self.order_he = int_pnts
         blank_mat_pn = np.zeros((M+1, M+1, M+1, M+1))
         self.c_He_drive = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
         self.c_He_target = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
@@ -184,48 +232,106 @@ class coefficients_4d:
             # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, He, blank_mat_pn, np.inf, x)
             # self.c_He_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
             # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
+
+            #current
             self.c_He_all[ix] = self.integrate_coeffs_4d_2(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
+            # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
+            # self.c_He_target[ix] = self.integrate_coeffs_3d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
+       
+        print('elapsed', time.perf_counter()-tick)
+    
+    def make_drive_coefficients_he(self, M, int_pnts = 40):
+        tick = time.perf_counter()
+        NPn = int(M)
+        NHe = int(M)
+        self.order_he = int_pnts
+        blank_mat_pn = np.zeros((M+1, M+1, M+1, M+1))
+        self.c_He_drive = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
+        self.c_He_target = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
+        self.c_He_all = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
+        xs_quad, ws_quad = chaos_quad.hermite(int_pnts)
+        xs_quad = xs_quad[0]
+        # ws_quad = ws_quad[0]
+        for ix, x in enumerate(self.xlist):
+            print(ix/self.xlist.size * 100, "percent complete")
+            # print(x, 'x')
+            # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, He, blank_mat_pn, np.inf, x)
+            # self.c_He_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
+            # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
             self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
+       
+        print('elapsed', time.perf_counter()-tick)
+
+    def make_target_coefficients_he(self, M, int_pnts = 40):
+        tick = time.perf_counter()
+        NPn = int(M)
+        NHe = int(M)
+        self.order_he = int_pnts
+        blank_mat_pn = np.zeros((M+1, M+1, M+1, M+1))
+        self.c_He_drive = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
+        self.c_He_target = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
+        self.c_He_all = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
+        xs_quad, ws_quad = chaos_quad.hermite(int_pnts)
+        xs_quad = xs_quad[0]
+        # ws_quad = ws_quad[0]
+        for ix, x in enumerate(self.xlist):
+            print(ix/self.xlist.size * 100, "percent complete")
+            # print(x, 'x')
+            # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, He, blank_mat_pn, np.inf, x)
+            # self.c_He_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
+            # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
             self.c_He_target[ix] = self.integrate_coeffs_3d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
         print('elapsed', time.perf_counter()-tick)
 
 
-
-    def make_drive_coefficients_pn(self, M, int_pnts = 40):
-        tick = time.perf_counter()
-        NPn = int(M)
-        NHe = int(M)
-        blank_mat_pn = np.zeros((M+1, M+1, M+1, M+1))
-        self.c_Pn_drive = np.zeros((self.xlist.size, NPn + 1, NPn + 1, NPn + 1, NPn + 1))
-        xs_quad, ws_quad = chaos_quad.legendre_proxy(int_pnts, domain =(-1,1))
-        xs_quad = xs_quad[0]
-        ws_quad = ws_quad[0]
-        for ix, x in enumerate(self.xlist):
-            print(ix/self.xlist.size * 100, "percent complete")
-            # print(x, 'x')
-            # self.c_Pn_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, Pn, blank_mat_pn, 1, x)
-            # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, He, blank_mat_pn, np.inf, x)
-            self.c_Pn_drive[ix] = self.integrate_coeffs_1d(self.a1, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad)
-
-        print('elapsed', time.perf_counter()-tick)
-
-    def save_pn(self, order = 0):
+    def save_pn_drive(self):
     # np.savetxt(name, sample_list)
-        f = h5py.File('coeffs_4d.hdf5', 'w')
-        dset1 = f.create_dataset("drive_Pn", data = self.c_Pn_drive)
-        dset2 = f.create_dataset("target_Pn", data = self.c_Pn_target)
-        dset3 = f.create_dataset("all_Pn", data = self.c_Pn_all)
+        f = h5py.File('coeffs_4d_drive_pn.hdf5', 'w')
+        dset1 = f.create_dataset(f"drive_Pn", data = self.c_Pn_drive)
+        # dset2 = f.create_dataset(f"target_Pn_{self.order_pn}", data = self.c_Pn_target)
+        # dset3 = f.create_dataset(f"all_Pn_{self.order_pn}", data = self.c_Pn_all)
         dset4 = f.create_dataset("xlist", data = self.xlist)
-        if order != 0:
-            dset5 =  f.create_dataset("order", data = order)
+        f.close()
+    def save_pn_target(self):
+    # np.savetxt(name, sample_list)
+        f = h5py.File('coeffs_4d_target_pn.hdf5', 'w')
+        # dset1 = f.create_dataset(f"drive_Pn_{self.order_pn}", data = self.c_Pn_drive)
+        dset2 = f.create_dataset(f"target_Pn", data = self.c_Pn_target)
+        # dset3 = f.create_dataset(f"all_Pn_{self.order_pn}", data = self.c_Pn_all)
+        dset4 = f.create_dataset("xlist", data = self.xlist)
+        f.close()
+    def save_pn_all(self):
+    # np.savetxt(name, sample_list)
+        f = h5py.File('coeffs_4d_all_pn.hdf5', 'w')
+        # dset1 = f.create_dataset(f"drive_Pn_{self.order_pn}", data = self.c_Pn_drive)
+        # dset2 = f.create_dataset(f"target_Pn_{self.order_pn}", data = self.c_Pn_target)
+        dset3 = f.create_dataset(f"all_Pn", data = self.c_Pn_all)
+        dset4 = f.create_dataset("xlist", data = self.xlist)
         f.close()
 
-    def save_he(self):
+    def save_he_drive(self):
     # np.savetxt(name, sample_list)
-        f = h5py.File('coeffs_4d.hdf5', 'w')
-        dset1 = f.create_dataset("drive_He", data = self.c_He_drive)
-        dset1 = f.create_dataset("target_He", data = self.c_He_target)
-        dset3 = f.create_dataset("all_He", data = self.c_He_all)
+        f = h5py.File('coeffs_4d_drive_he.hdf5', 'w')
+        dset1 = f.create_dataset(f"drive_He", data = self.c_He_drive)
+        # dset1 = f.create_dataset(f"target_He_{self.order_he}", data = self.c_He_target)
+        # dset3 = f.create_dataset(f"all_He_{self.order_he}", data = self.c_He_all)
+        dset4 = f.create_dataset("xlist", data = self.xlist)
+        f.close()
+    def save_he_target(self):
+    # np.savetxt(name, sample_list)
+        f = h5py.File('coeffs_4d_target_he.hdf5', 'w')
+        # dset1 = f.create_dataset(f"drive_He_{self.order_he}", data = self.c_He_drive)
+        dset1 = f.create_dataset(f"target_He", data = self.c_He_target)
+        # dset3 = f.create_dataset(f"all_He_{self.order_he}", data = self.c_He_all)
+        dset4 = f.create_dataset("xlist", data = self.xlist)
+        f.close()
+
+    def save_he_all(self):
+    # np.savetxt(name, sample_list)
+        f = h5py.File('coeffs_4d_all_he.hdf5', 'w')
+        # dset1 = f.create_dataset(f"drive_He_{self.order_he}", data = self.c_He_drive)
+        # dset1 = f.create_dataset(f"target_He_{self.order_he}", data = self.c_He_target)
+        dset3 = f.create_dataset(f"all_He", data = self.c_He_all)
         dset4 = f.create_dataset("xlist", data = self.xlist)
         f.close()
     
