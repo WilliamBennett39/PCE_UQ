@@ -173,6 +173,15 @@ def make_expansion_1d(coeffs, basis, NN, x):
     for n in range(0,NN):
         res += coeffs[n] * basis(n, x)
     return res
+@njit
+def make_expansion_4d(coeffs, basis, NNi, NNj, NNk, NNm, x1, x2, x3, x4):
+    res = 0
+    for i in range(0,NNi+1):
+        for j in range(0, NNj+1):
+            for k in range(0, NNk+1):
+                for m in range(0, NNm+1):
+                    res += coeffs[i, j, k, m] * b_prod(x1, x2, x3, x4, i, j, k, m, basis)
+    return res
 
 @njit
 def make_expansion_1d_h(coeffs,basis, NN, x):
@@ -195,12 +204,36 @@ def sampler_sobol(n, coeffs, NN, sample):
         a4 = make_expansion_1d(coeffs[3], Pn, NN, sample[i,3]*2-1)
         
         return_array[i] = a1*a2*a3*a4 
+    return return_array
+
+@njit
+def sampler_sobol_4d(n, coeffs, NN, sample):
+    return_array = np.zeros(2**n)
+    a1 = 0
+    for i in range(2**n):
+        a1 = make_expansion_4d(coeffs, Pn, NN, NN, NN, NN, sample[i,0]*2-1, sample[i,1]*2-1, sample[i,2]*2-1, sample[i,3]*2-1) 
+        return_array[i] = a1
+    return return_array
+@njit
+def sampler_sobol_3d(n, coeffs, NN, sample):
+    return_array = np.zeros(2**n)
+    a1 = 0
+    for i in range(2**n):
+        a1 = make_expansion_4d(coeffs, Pn, 0, NN, NN, NN, sample[i,0]*2-1, sample[i,1]*2-1, sample[i,2]*2-1, sample[i,3]*2-1) 
+        return_array[i] = a1
+    return return_array
+@njit
+def sampler_sobol_1d(n, coeffs, NN, sample):
+    return_array = np.zeros(2**n)
+    a1 = 0
+    for i in range(2**n):
+        a1 = make_expansion_4d(coeffs, Pn, NN, 0, 0, 0, sample[i,0]*2-1, sample[i,1]*2-1, sample[i,2]*2-1, sample[i,3]*2-1) 
+        return_array[i] = a1
 
     # print(make_expansion_1d(coeffs[0], Pn, NN, 0.5), "0")
     # print(make_expansion_1d(coeffs[1], Pn, NN, 0.5), "1")
     # print(make_expansion_1d(coeffs[2], Pn, NN, 0.5), "2")
     # print(make_expansion_1d(coeffs[3], Pn, NN, 0.5), "3")
-
     return return_array
 
 @njit

@@ -1,5 +1,6 @@
 import numpy as np
 from .functions import Pn, He, make_expansion_1d, sampler_sobol, sampler_normal
+from .functions import sampler_sobol_1d, sampler_sobol_3d, sampler_sobol_4d
 import math
 import time
 from scipy.stats import qmc
@@ -73,9 +74,26 @@ def sample_breakout_n(NSAMPLES=1024):
 
 
 
+def sample_T_pn(N_samples = 1024):
+    # load coefficients
+    f1 = h5py.File('coeffs_4d_all_pn.hdf5', 'r+')
+    all_coeffs_pn = f1['all_Pn']
+    xlist = f1['xlist']
+    xs = np.array(xlist)
+    a1 = (np.array(all_coeffs_pn))/16
+    f1.close()
+    
+    NN = len(a1[0])
+    print(NN, "M")
+    n = int(math.log2(N_samples))
+    sampler = qmc.Sobol(d=4, scramble=False)
+    sample = sampler.random_base2(m=n)
 
-
-
+    samples_all = np.zeros((xs.size, 2**n))
+    for ix, xx in enumerate(xs):
+        samples_all[ix] = sampler_sobol_4d(n, a1[ix], NN, sample)
+    save_T_samples(samples_all, 'all_Pn_samples.hdf5')
+    print(np.mean(samples_all[0]), 'should be close to 0.4')
 
 
 
@@ -88,6 +106,14 @@ def save_results(drive, target, alls, name):
     dset[0] = drive
     dset[1] = target
     dset[2] = alls
+    f.close()
+
+
+def save_T_samples(samples, name):
+    # np.savetxt(name, sample_list)
+    f = h5py.File(name, 'w')
+    dset = f.create_dataset("samples", data = samples)
+
     f.close()
 
 
