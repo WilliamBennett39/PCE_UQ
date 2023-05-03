@@ -120,6 +120,12 @@ def Pn2(n, x):
         return (-429 + 45045*x**2 - 765765*x**4 + 323*x**6*(15015 - 45045*x**2 + 69069*x**4 - 52325*x**6 + 15525*x**8))/2048.
     elif n == 15:
         return (x*(-6435 + 255255*x**2 + 323*x**4*(-9009 + 5*x**2*(9009 + 23*x**2*(-1001 + 1365*x**2 - 945*x**4 + 261*x**6)))))/2048.
+    elif n == 16:
+        return (6435 - 875160*x**2 + 19399380*x**4 - 162954792*x**6 + 669278610*x**8 - 1487285800*x**10 + 1825305300*x**12 - 1163381400*x**14 + 300540195*x**16)/32768.
+    elif n == 17:
+        return (109395*x - 5542680*x**3 + 81477396*x**5 - 535422888*x**7 + 1859107250*x**9 - 3650610600*x**11 + 4071834900*x**13 - 2404321560*x**15 + 583401555*x**17)/32768.
+    elif n == 18:
+        return (-12155 + 2078505*x**2 - 58198140*x**4 + 624660036*x**6 - 3346393050*x**8 + 10039179150*x**10 - 17644617900*x**12 + 18032411700*x**14 - 9917826435*x**16 + 2268783825*x**18)/65536.
 #     return tmp 
 @njit
 def He(m,x):
@@ -176,11 +182,22 @@ def make_expansion_1d(coeffs, basis, NN, x):
 @njit
 def make_expansion_4d(coeffs, basis, NNi, NNj, NNk, NNm, x1, x2, x3, x4):
     res = 0
+    # print(NNi, NNj, NNk, NNm, 'Ns')
+    # print(coeffs[0, 0, 0, 0], 'coeffs 0')
     for i in range(0,NNi+1):
         for j in range(0, NNj+1):
             for k in range(0, NNk+1):
                 for m in range(0, NNm+1):
                     res += coeffs[i, j, k, m] * b_prod(x1, x2, x3, x4, i, j, k, m, basis)
+    return res
+
+@njit
+def make_expansion_1d_2(coeffs, basis, NNi, NNj, NNk, NNm, x1, x2, x3, x4):
+    res = 0
+    # print(NNi, NNj, NNk, NNm, 'Ns')
+    # print(coeffs[0, 0, 0, 0], 'coeffs 0')
+    for i in range(0,NNi+1):
+        res += coeffs[i, 0, 0, 0] * b_prod(x1, x2, x3, x4, i, 0 , 0, 0, basis)
     return res
 
 @njit
@@ -213,7 +230,27 @@ def sampler_sobol_4d(n, coeffs, NN, sample):
     for i in range(2**n):
         a1 = make_expansion_4d(coeffs, Pn, NN, NN, NN, NN, sample[i,0]*2-1, sample[i,1]*2-1, sample[i,2]*2-1, sample[i,3]*2-1) 
         return_array[i] = a1
+        
     return return_array
+@njit
+def sampler_normal_4d(n, coeffs, NN, sample):
+    return_array = np.zeros(2**n)
+    a1 = 0
+    for i in range(2**n):
+        a1 = make_expansion_4d(coeffs, He, NN, NN, NN, NN, sample[i,0], sample[i,1], sample[i,2], sample[i,3]) 
+        return_array[i] = a1
+
+    return return_array
+@njit
+def sampler_normal_3d(n, coeffs, NN, sample):
+    return_array = np.zeros(2**n)
+    a1 = 0
+    for i in range(2**n):
+        a1 = make_expansion_4d(coeffs, He, 0, NN, NN, NN, sample[i,0], sample[i,1], sample[i,2], sample[i,3]) 
+        return_array[i] = a1
+        # print(a1)
+    return return_array
+
 @njit
 def sampler_sobol_3d(n, coeffs, NN, sample):
     return_array = np.zeros(2**n)
@@ -227,8 +264,17 @@ def sampler_sobol_1d(n, coeffs, NN, sample):
     return_array = np.zeros(2**n)
     a1 = 0
     for i in range(2**n):
-        a1 = make_expansion_4d(coeffs, Pn, NN, 0, 0, 0, sample[i,0]*2-1, sample[i,1]*2-1, sample[i,2]*2-1, sample[i,3]*2-1) 
+        a1 = make_expansion_1d_2(coeffs, Pn, NN, 0, 0, 0, sample[i,0]*2-1, sample[i,1]*2-1, sample[i,2]*2-1, sample[i,3]*2-1) 
         return_array[i] = a1
+    return return_array
+@njit
+def sampler_normal_1d(n, coeffs, NN, sample):
+    return_array = np.zeros(2**n)
+    a1 = 0
+    for i in range(2**n):
+        a1 = make_expansion_4d(coeffs, He, NN, 0, 0, 0, sample[i,0], sample[i,1], sample[i,2], sample[i,3]) 
+        return_array[i] = a1
+    return return_array
 
     # print(make_expansion_1d(coeffs[0], Pn, NN, 0.5), "0")
     # print(make_expansion_1d(coeffs[1], Pn, NN, 0.5), "1")
@@ -357,11 +403,25 @@ def F1_custom(x1, x2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, 
         integrand[ix] = (T0 + a1 * x1[ix]) * interpolated_T2(xx, ximax, tt, c, k_interp, equi_spaced, dx)[0] * b_prod2(x1[ix], x2, x3, x4, l1, l2, l3, l4, Pn)
     # print(interpolated_T(0.4, ximax, tt, c, k_interp, equi_spaced, dx))
     return integrand
-    
+# @njit
 def F1_H(x1, x2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
     xi = x * Afunc(x1, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4)/math.sqrt(t)
     # w = np.exp(-x1**2/2) *  np.exp(-x2**2/2) *  np.exp(-x3**2/2) *  np.exp(-x4**2/2)
     integrand = (T0 + a1 * x1) * interpolated_T(xi, ximax, tt, c, k, equi_spaced, dx) * b_prod(x1, x2, x3, x4, l1, l2, l3, l4, He)
+    return integrand
+# @njit
+def F1_H_weightf(x1, x2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
+    xi = x * Afunc(x1, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4)/math.sqrt(t)
+    w = np.exp(-x1**2/2)
+    integrand = w * (T0 + a1 * x1) * interpolated_T(xi, ximax, tt, c, k, equi_spaced, dx)* b_prod(x1, x2, x3, x4, l1, l2, l3, l4, He) / math.sqrt(2*math.pi)
+    return integrand
+@njit
+def F1_H_weightf2(x1, x2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
+    xi = x * Afunc2(x1, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4) / math.sqrt(t)
+    integrand = xi * 0
+    for ix, xx in enumerate(xi):
+        w = np.exp(-x1[ix]**2/2)
+        integrand[ix] = w * (T0 + a1 * x1[ix]) * interpolated_T(xx, ximax, tt, c, k, equi_spaced, dx)[0] * b_prod(x1[ix], x2, x3, x4, l1, l2, l3, l4, He) / math.sqrt(2*math.pi)
     return integrand
 
 # def F2(x2, x3, x4, x1, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
@@ -386,7 +446,7 @@ def F2_H(x2, x3, x4, x1, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, x
 
 nb_integrand = cfunc("float64[:](float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, int64, float64, float64, float64, float64, float64, float64[:], float64[:], int64, int64, float64, int64, int64, int64, int64)")(F1)
 # nb_integrand_2 = cfunc("float64[:](float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, int64, float64, float64, float64, float64, float64, float64[:], float64[:], int64, int64, float64, int64, int64, int64, int64)")(F2_custom)
-nb_integrand_He = cfunc("float64[:](float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, int64, float64, float64, float64, float64, float64, float64[:], float64[:], int64, int64, float64, int64, int64, int64, int64)")(F1_H)
+nb_integrand_He = cfunc("float64[:](float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, int64, float64, float64, float64, float64, float64, float64[:], float64[:], int64, int64, float64, int64, int64, int64, int64)")(F1_H_weightf)
 nb_integrand_2_He= cfunc("float64[:](float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, int64, float64, float64, float64, float64, float64, float64[:], float64[:], int64, int64, float64, int64, int64, int64, int64)")(F2_H)
 # nb_integrand_custom = cfunc("float64[:](float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, float64, int64, float64, float64, float64, float64, float64, float64[:], float64[:], int64, int64, float64, int64, int64, int64, int64)")(F1_custom)
 
@@ -441,33 +501,39 @@ def quadruple_integral_nb_4(xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2
 
 
 @njit
-def quadruple_integral_nb_h1(x2, x3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
+def quadruple_integral_nb_h1(x2, x3, x4, xspn, wspn, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
         res = x2 * 0
+        tol = 1e-16
+        logtol = math.log(tol)
         for it, ix2 in enumerate(x2):
+            wave_cutoff = (-T0 + ((x**2*(cv + a4*x4)*(a2*ix2 + kappa0)*(a3*x3 + rho0)**2)/(t*ximax**2*omega**2))**(1/n))/a1
+            right_bound = 2*math.sqrt(-2*logtol)
+            val_right = F1_H_weightf2(np.array([right_bound]), ix2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4) 
+            if val_right > 1e-16:
+                print('cut off too much', val_right, right_bound)
                 # print('adjusting interval')
             # elif wave_cutoff < 1:
             #     right_bound = wave_cutoff
-
-            res[it] = integrate_quad_hermite(xs, ws, F1_custom, args = (ix2, x3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+            res[it] = integrate_quad(wave_cutoff, right_bound, xspn, wspn, F1_H_weightf2, args = (ix2, x3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
         return res
 
 @njit
-def quadruple_integral_nb_h2(x3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
+def quadruple_integral_nb_h2(x3, x4, xspn, wspn, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
     res = x3 * 0
     for it, ix3 in enumerate(x3):
-        res[it] = integrate_quad_hermite(xs, ws, quadruple_integral_nb_h1, args = (ix3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+        res[it] = integrate_quad_hermite(xs, ws, quadruple_integral_nb_h1, args = (ix3, x4, xspn, wspn, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
     return res
 
 @njit
-def quadruple_integral_nb_h3(x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
+def quadruple_integral_nb_h3(x4, xspn, wspn, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
     res = x4 * 0
     for it, ix4 in enumerate(x4):
-        res[it] = integrate_quad_hermite(xs, ws, quadruple_integral_nb_h2, args = (ix4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+        res[it] = integrate_quad_hermite(xs, ws, quadruple_integral_nb_h2, args = (ix4,xspn, wspn, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
     return res
 
 @njit
-def quadruple_integral_nb_h4(xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
-    res = integrate_quad_hermite(xs, ws, quadruple_integral_nb_h3, args = (xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+def quadruple_integral_nb_h4(xspn, wspn, xsh, wsh,  x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
+    res = integrate_quad_hermite(xsh, wsh, quadruple_integral_nb_h3, args = (xspn, wspn, xsh, wsh, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
     return res
 
 @njit
@@ -552,3 +618,15 @@ def triple_integral_nb_h3(xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, 
 # # print("should be 1.0", integrate_quad_hermite(xs_quad, ws_quad, exp_func, args = (0.0)))
 # # print(np.sum(ws_quad * exp_func(xs_quad, 0.0)))
 # # print(np.sum(ws_quad))
+
+def monte_carlo_pn(samples, nsamples, x, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, t, xmax, tt, c, kK, equi_spaced, dx):
+    return_array = np.zeros(2**nsamples)
+    for i in range(2**nsamples):  
+        x1 = samples[i, 0]*2 - 1  
+        x2 = samples[i, 0]*2 - 1 
+        x3 = samples[i, 0]*2 - 1   
+        x4 = samples[i, 0]*2 - 1  
+        xi = x * Afunc(x1, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4) / math.sqrt(t)
+        a1 = interpolated_T2(x, xmax, tt, c, kK, equi_spaced, dx) * (T0 + a1* x1)
+        return_array[i] = a1
+    return return_array

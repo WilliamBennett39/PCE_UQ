@@ -7,8 +7,8 @@ def rmse(list1, list2):
     return np.mean(np.sqrt((list1-list2)**2))
 
 ob = coefficients_4d()
-M=8
-order = 16
+M = 6
+order = 4
 err = 10
 tol = 1e-8
 ob.make_target_coefficients_pn(M, order)

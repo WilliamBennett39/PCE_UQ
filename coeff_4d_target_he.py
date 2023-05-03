@@ -7,7 +7,7 @@ def rmse(list1, list2):
     return np.mean(np.sqrt((list1-list2)**2))
 
 ob = coefficients_4d()
-order = 40
+order = 4
 M=4
 err = 10
 tol = 1e-5
