@@ -13,9 +13,10 @@ err = 10
 tol = 1e-4
 ob.make_drive_coefficients_he(M, order)
 coeffs_old = ob.c_He_drive
-
+order_list = [2,4,6,8,10]
+it = 1
 while err > tol:
-    order = order * 2
+    order = order_list[it]
     print(order, 'order')
     ob.make_drive_coefficients_he(M, order)
     coeffs_new = ob.c_He_drive
@@ -23,5 +24,6 @@ while err > tol:
     print(err, 'RMSE')
     coeffs_old = coeffs_new
     ob.save_he_drive()
+    it += 1
 
 

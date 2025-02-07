@@ -15,8 +15,10 @@ tol = 1e-8
 ob.make_all_coefficients_pn(M, order)
 ob.save_pn_all()
 coeffs_old = ob.c_Pn_all
+order_list = [2,4,6,8,10]
+it = 0
 while err > tol:
-    order = order * 2
+    order = order_list[it]
     print(order, 'order')
     ob.make_all_coefficients_pn(M, order)
     coeffs_new = ob.c_Pn_all
@@ -24,3 +26,4 @@ while err > tol:
     err = rmse(coeffs_new, coeffs_old)
     print(err, 'RMSE')
     coeffs_old = coeffs_new
+    it += 1

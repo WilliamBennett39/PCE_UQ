@@ -14,9 +14,10 @@ tol = 1e-5
 ob.make_target_coefficients_he(M, 0)
 ob.make_target_coefficients_he(M, order)
 coeffs_old = ob.c_He_target
-
+order_list = [2,4,6,8,10]
+it = 0
 while err > tol:
-    order  = order * 2
+    order = order_list[it]
     print(order, 'order')
     print(err, 'RMSE')
     ob.make_target_coefficients_he(M, order)
@@ -24,3 +25,4 @@ while err > tol:
     ob.save_he_target()
     err = rmse(coeffs_new, coeffs_old)
     coeffs_old = coeffs_new
+    it += 1
