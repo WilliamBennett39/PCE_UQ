@@ -422,13 +422,15 @@ class coefficients_4d:
     def save_mc_pn_samples(self):
     # np.savetxt(name, sample_list)
         f = h5py.File('mc_samples_pn.hdf5', 'w')
-        quantile_dat = np.zeros((3, self.xlist.size))
-        quantile_dat_targ = np.zeros((3, self.xlist.size))
-        quantile_dat_all = np.zeros((3, self.xlist.size))
+        quantile_dat = np.zeros((5, self.xlist.size))
+        quantile_dat_targ = np.zeros((5, self.xlist.size))
+        quantile_dat_all = np.zeros((5, self.xlist.size))
         for ix, xx in enumerate(self.xlist):
             quantile_dat[0, ix] = np.quantile(self.mc_drive_pn_samples[ix], 0.5)
             quantile_dat[1, ix] = np.quantile(self.mc_drive_pn_samples[ix], 0.2)
             quantile_dat[2, ix] = np.quantile(self.mc_drive_pn_samples[ix], 0.8)
+            quantile_dat[3, ix] = np.mean(self.mc_drive_pn_samples[ix])
+            quantile_dat[4, ix] = np.std(self.mc_drive_pn_samples[ix])
 
             quantile_dat_targ[0, ix] = np.quantile(self.mc_target_pn_samples[ix], 0.5)
             quantile_dat_targ[1, ix] = np.quantile(self.mc_target_pn_samples[ix], 0.2)
