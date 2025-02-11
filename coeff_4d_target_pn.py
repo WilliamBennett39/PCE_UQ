@@ -11,7 +11,7 @@ M = 0
 order = 32
 err = 10
 tol = 1e-8
-ob.make_target_coefficients_pn(M, order)
+ob.make_target_coefficients_pn(M, 2)
 coeffs_old = ob.c_Pn_target
 order_list = [0, 1,2,3,4,5,6,7,8,9,10]
 it = 0
