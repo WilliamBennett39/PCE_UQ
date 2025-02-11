@@ -12,14 +12,14 @@ order = 32
 err = 10
 tol = 1e-8
 # ob.make_all_coefficients_pn(M, 2)
-ob.make_all_coefficients_pn(M, order)
+ob.make_all_coefficients_pn(M, 2)
 ob.save_pn_all()
 coeffs_old = ob.c_Pn_all
-order_list = [2,4,6,8,10]
+order_list = [0, 1,2,3,4,5,6,7,8,9,10]
 it = 0
 while err > tol:
-    order = order_list[it]
-    print(order, 'order')
+    M = order_list[it]
+    print(M, 'M')
     ob.make_all_coefficients_pn(M, order)
     coeffs_new = ob.c_Pn_all
     ob.save_pn_all()

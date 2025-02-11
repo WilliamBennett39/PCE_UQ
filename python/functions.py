@@ -514,8 +514,12 @@ def quadruple_integral_nb_1(x2, x3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omeg
 def quadruple_integral_nb_2(x3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
     res = x3 * 0
     for it, ix3 in enumerate(x3):
-        left_bound = -1
-        right_bound = 1
+        left_bound = -1.0
+        right_bound = 1.0
+        # wave_cutoff = -((a3**2*cv*x**2*ix3**2*kappa0 + a3**2*a4*x**2*ix3**2*x4*kappa0 + 2*a3*cv*x**2*ix3*kappa0*rho0 + 2*a3*a4*x**2*ix3*x4*kappa0*rho0 + cv*x**2*kappa0*rho0**2 + a4*x**2*x4*kappa0*rho0**2 - t*T0**n*ximax**2*omega**2)/(a2*x**2*(cv + a4*x4)*(a3*ix3 + rho0)**2))
+        # if a1 == 0.0:
+        #     if wave_cutoff > -1 and wave_cutoff < 1:
+        #         left_bound = wave_cutoff
         res[it] = integrate_quad(left_bound, right_bound, xs, ws, quadruple_integral_nb_1, args = (ix3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
     return res
 

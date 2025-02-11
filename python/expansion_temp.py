@@ -200,7 +200,7 @@ class coefficients_4d:
         xs_quad, ws_quad = chaos_quad.legendre_proxy(int_pnts, domain =(-1,1))
         xs_quad = xs_quad[0]
         for ix, x in enumerate(self.xlist):
-            self.c_Pn_target[ix] = self.integrate_coeffs_4d_2(self.a1 * 0, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad, xs_quad, ws_quad)
+            # self.c_Pn_target[ix] = self.integrate_coeffs_4d_2(self.a1 * 0, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad, xs_quad, ws_quad)
             # print(ix/self.xlist.size * 100, "percent complete")
             # print(x, 'x')
             # self.c_Pn_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, Pn, blank_mat_pn, 1, x)
@@ -209,7 +209,7 @@ class coefficients_4d:
             # self.c_He_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
             # self.c_Pn_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, Pn, blank_mat_pn, 1, x)
             # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
-            # self.c_Pn_target[ix] = self.integrate_coeffs_3d(self.a1, self.a2, self.a3, self.a3, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad, xs_quad, ws_quad)
+            self.c_Pn_target[ix] = self.integrate_coeffs_3d(self.a1, self.a2, self.a3, self.a3, M, Pn, blank_mat_pn, 1, x, xs_quad, ws_quad, xs_quad, ws_quad)
         print('elapsed', time.perf_counter()-tick)
         self.factors(M)
 
