@@ -439,6 +439,8 @@ class coefficients_4d:
             quantile_dat_all[0, ix] = np.quantile(self.mc_all_pn_samples[ix], 0.5)
             quantile_dat_all[1, ix] = np.quantile(self.mc_all_pn_samples[ix], 0.2)
             quantile_dat_all[2, ix] = np.quantile(self.mc_all_pn_samples[ix], 0.8)
+            quantile_dat_all[3, ix] = np.mean(self.mc_all_pn_samples[ix])
+            quantile_dat_all[4, ix] = np.std(self.mc_all_pn_samples[ix])
         # dset1 = f.create_dataset(f"drive_He_{self.order_he}", data = self.c_He_drive)
         # dset1 = f.create_dataset(f"target_He_{self.order_he}", data = self.c_He_target)
         dset3 = f.create_dataset(f"drive", data = quantile_dat)

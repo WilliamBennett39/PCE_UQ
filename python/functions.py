@@ -491,9 +491,15 @@ def integrate_quad_hermite(xs, ws, func1, args):
 def quadruple_integral_nb_1(x2, x3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
         res = x2 * 0
         for it, ix2 in enumerate(x2):
-            wave_cutoff = (-T0 + ((x**2*(cv + a4*x4)*(a2*ix2 + kappa0)*(a3*x3 + rho0)**2)/(t*ximax**2*omega**2))**(1/n))/a1
+            wave_cutoff = -1
+            if a1 != 0:
+                wave_cutoff = (-T0 + ((x**2*(cv + a4*x4)*(a2*ix2 + kappa0)*(a3*x3 + rho0)**2)/(t*ximax**2*omega**2))**(1/n))/a1
+            # if abs(wave_cutoff) <= 1:
+            #     print(wave_cutoff) 
             left_bound = -1
             right_bound = 1
+            if abs(wave_cutoff) < 1:
+                left_bound = wave_cutoff
             # if -1 < wave_cutoff < 1:
                 # left_bound = wave_cutoff
                 # print(left_bound, right_bound, x)
