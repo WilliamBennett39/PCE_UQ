@@ -8,21 +8,22 @@ def rmse(list1, list2):
 
 ob = coefficients_4d()
 M = 0
-order = 32
+order = 128
 err = 10
 tol = 1e-8
 ob.make_target_coefficients_pn(M, 2)
+
 coeffs_old = ob.c_Pn_target
-order_list = [0, 1,2,3,4,5,6,7,8,9,10]
+order_list = [0]
 it = 0
-while err > tol:
+while err > tol and it < len(order_list):
     # order = order * 2
     M = order_list[it]
     print(M, 'M')
     print(err, 'RMSE')
     ob.make_target_coefficients_pn(M, order)
     coeffs_new = ob.c_Pn_target
-    err = rmse(coeffs_new, coeffs_old)
+    # err = rmse(coeffs_new, coeffs_old)
     coeffs_old = coeffs_new
     ob.save_pn_target()
     it += 1

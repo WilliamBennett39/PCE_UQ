@@ -455,7 +455,7 @@ def F2_custom(x2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, 
     xi = x * Afunc2(0, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4) / math.sqrt(t)
     integrand = xi * 0
     for ix, xx in enumerate(xi):
-        integrand[ix] = (T0 + a1 * 0) * interpolated_T2(xx, ximax, tt, c, k_interp, equi_spaced, dx)[0] * b_prod2(0.0, x2[ix], x3, x4, l1, l2, l3, l4, Pn)
+        integrand[ix] = (T0) * interpolated_T2(xx, ximax, tt, c, k_interp, equi_spaced, dx)[0] * b_prod2(0.0, x2[ix], x3, x4, l1, l2, l3, l4, Pn)
     # print(interpolated_T(0.4, ximax, tt, c, k_interp, equi_spaced, dx))
     return integrand
 
@@ -582,7 +582,7 @@ def triple_integral_nb_1(x3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a
             # elif wave_cutoff < 1:
             #     right_bound = wave_cutoff
 
-            res[it] = integrate_quad(-1, 1, xs, ws, F2_custom, args = (ix3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+            res[it] = integrate_quad(-1, 1, xs, ws, F2_custom, args = (ix3, x4, x, t, T0, kappa0, rho0,cv, omega, n, 0, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
         return res
 @njit
 def triple_integral_nb_2(x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):

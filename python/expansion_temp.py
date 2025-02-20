@@ -247,8 +247,8 @@ class coefficients_4d:
         xs_quad_pn = xs_quad_pn[0]
 
         # ws_quad = ws_quad[0]
-        for ix, x in enumerate(self.xlist_h):
-            print(ix/self.xlist.size * 100, "percent complete")
+        for ix, x in enumerate(tqdm(self.xlist_h)):
+            # print(ix/self.xlist.size * 100, "percent complete")
             # print(x, 'x')
             # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, He, blank_mat_pn, np.inf, x)
             # self.c_He_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
@@ -330,6 +330,7 @@ class coefficients_4d:
                         self.c_He_target[ix][i, j, k, 0] = self.c_He_target[ix][i, j, k, 0] * factorhe3
                         for l in range(M+1):
                             factorpn4 = (2 * i + 1) * (2 * j + 1) * (2 * k + 1) * (2 * l + 1) / 16
+  
                             factorhe4 = 1 / (math.factorial(i)* math.factorial(j)* math.factorial(k)* math.factorial(l))
                             self.c_Pn_all[ix][i, j, k, l] = self.c_Pn_all[ix][i, j, k, l] * factorpn4
                             self.c_He_all[ix][i, j, k, l] = self.c_He_all[ix][i, j, k, l] * factorhe4
@@ -456,23 +457,28 @@ class coefficients_4d:
     def save_mc_he_samples(self):
     # np.savetxt(name, sample_list)
         f = h5py.File('mc_samples_he.hdf5', 'w')
-        quantile_dat = np.zeros((4, self.xlist.size))
-        quantile_dat_targ = np.zeros((3, self.xlist.size))
-        quantile_dat_all = np.zeros((3, self.xlist.size))
+        quantile_dat = np.zeros((5, self.xlist.size))
+        quantile_dat_targ = np.zeros((5, self.xlist.size))
+        quantile_dat_all = np.zeros((5, self.xlist.size))
         for ix, xx in enumerate(self.xlist):
             quantile_dat[0, ix] = np.quantile(self.mc_drive_he_samples[ix], 0.5)
             quantile_dat[1, ix] = np.quantile(self.mc_drive_he_samples[ix], 0.2)
             quantile_dat[2, ix] = np.quantile(self.mc_drive_he_samples[ix], 0.8)
             quantile_dat[3, ix] = np.mean(self.mc_drive_he_samples[ix])
+            quantile_dat[4, ix] = np.std(self.mc_drive_he_samples[ix])
 
 
             quantile_dat_targ[0, ix] = np.quantile(self.mc_target_he_samples[ix], 0.5)
             quantile_dat_targ[1, ix] = np.quantile(self.mc_target_he_samples[ix], 0.2)
             quantile_dat_targ[2, ix] = np.quantile(self.mc_target_he_samples[ix], 0.8)
+            quantile_dat_targ[3, ix] = np.mean(self.mc_target_he_samples[ix])
+            quantile_dat_targ[4, ix] = np.std(self.mc_target_he_samples[ix])
 
             quantile_dat_all[0, ix] = np.quantile(self.mc_all_he_samples[ix], 0.5)
             quantile_dat_all[1, ix] = np.quantile(self.mc_all_he_samples[ix], 0.2)
             quantile_dat_all[2, ix] = np.quantile(self.mc_all_he_samples[ix], 0.8)
+            quantile_dat_all[3, ix] = np.mean(self.mc_all_he_samples[ix])
+            quantile_dat_all[4, ix] = np.std(self.mc_all_he_samples[ix])
         # dset1 = f.create_dataset(f"drive_He_{self.order_he}", data = self.c_He_drive)
         # dset1 = f.create_dataset(f"target_He_{self.order_he}", data = self.c_He_target)
         dset3 = f.create_dataset(f"drive", data = quantile_dat)

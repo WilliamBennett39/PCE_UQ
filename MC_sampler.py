@@ -7,3 +7,4 @@ ob = coefficients_4d()
 def MC_samples(n=8):
 
     ob.monte_carlo_sampler_pn(n) # this actually samples he also
+    
