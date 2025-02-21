@@ -442,8 +442,8 @@ def F1_H_weightf2(x1, x2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, 
     xi = x * Afunc2(x1, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4) / math.sqrt(t)
     integrand = xi * 0
     for ix, xx in enumerate(xi):
-        w = np.exp(-x1[ix]**2/2) * np.exp(-x2**2/2) * np.exp(-x3**2/2) * np.exp(-x4**2/2) / math.sqrt(2*math.pi)**4
-        integrand[ix] = w * (T0 + a1 * x1[ix]) * interpolated_T(xx, ximax, tt, c, k, equi_spaced, dx)[0] * b_prod(x1[ix], x2, x3, x4, l1, l2, l3, l4, He) 
+        w = np.exp(-x1[ix]**2/2) 
+        integrand[ix] = w * (T0 + a1 * x1[ix]) * interpolated_T(xx, ximax, tt, c, k, equi_spaced, dx)[0] * b_prod(x1[ix], x2, x3, x4, l1, l2, l3, l4, He) /math.sqrt(2*math.pi)
     return integrand
 
 # def F2(x2, x3, x4, x1, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
@@ -554,8 +554,8 @@ def quadruple_integral_nb_h1(x2, x3, x4, xspn, wspn, x, t, T0, kappa0, rho0, cv,
                 # print('adjusting interval')
             # elif wave_cutoff < 1:
             #     right_bound = wave_cutoff
-            # res[it] = integrate_quad(wave_cutoff, right_bound, xspn, wspn, F1_H_weightf2, args = (ix2, x3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
-            res[it] = integrate_quad_hermite(xspn, wspn, F1_custom_H, args = (ix2, x3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+            res[it] = integrate_quad(wave_cutoff, right_bound, xspn, wspn, F1_H_weightf2, args = (ix2, x3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+            # res[it] = integrate_quad_hermite(xspn, wspn, F1_custom_H, args = (ix2, x3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
 
         return res
 

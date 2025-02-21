@@ -243,7 +243,7 @@ class coefficients_4d:
         self.c_He_all = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
         xs_quad, ws_quad = chaos_quad.hermite(int_pnts, physicist = False)
         xs_quad = xs_quad[0]
-        xs_quad_pn, ws_quad_pn = chaos_quad.legendre_proxy(25, domain =(-1,1))
+        xs_quad_pn, ws_quad_pn = chaos_quad.legendre_proxy(2*int_pnts, domain =(-1,1))
         xs_quad_pn = xs_quad_pn[0]
 
         # ws_quad = ws_quad[0]
@@ -255,7 +255,7 @@ class coefficients_4d:
             # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
 
             #current
-            self.c_He_all[ix] = self.integrate_coeffs_4d_2(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad, xs_quad, ws_quad)
+            self.c_He_all[ix] = self.integrate_coeffs_4d_2(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad_pn, ws_quad_pn, xs_quad, ws_quad)
             # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
             # self.c_He_target[ix] = self.integrate_coeffs_3d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
        
