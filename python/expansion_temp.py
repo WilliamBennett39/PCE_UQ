@@ -329,8 +329,8 @@ class coefficients_4d:
                         self.c_Pn_target[ix][i, j, k, 0] = self.c_Pn_target[ix][i, j, k, 0] * factorpn3
                         self.c_He_target[ix][i, j, k, 0] = self.c_He_target[ix][i, j, k, 0] * factorhe3
                         for l in range(M+1):
-                            factorpn4 = (2 * i + 1) * (2 * j + 1) * (2 * k + 1) * (2 * l + 1) / 16
-  
+                            # factorpn4 = (2 * i + 1) * (2 * j + 1) * (2 * k + 1) * (2 * l + 1) / 16
+                            factorpn4 = 1
                             # factorhe4 = 1 / (math.factorial(i)* math.factorial(j)* math.factorial(k)* math.factorial(l))
                             factorhe4 = 1
                             self.c_Pn_all[ix][i, j, k, l] = self.c_Pn_all[ix][i, j, k, l] * factorpn4
