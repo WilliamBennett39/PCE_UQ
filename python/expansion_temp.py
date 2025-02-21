@@ -241,7 +241,7 @@ class coefficients_4d:
         self.c_He_drive = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
         self.c_He_target = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
         self.c_He_all = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
-        xs_quad, ws_quad = chaos_quad.hermite(int_pnts)
+        xs_quad, ws_quad = chaos_quad.hermite(int_pnts, physicist = False)
         xs_quad = xs_quad[0]
         xs_quad_pn, ws_quad_pn = chaos_quad.legendre_proxy(25, domain =(-1,1))
         xs_quad_pn = xs_quad_pn[0]
@@ -255,7 +255,7 @@ class coefficients_4d:
             # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
 
             #current
-            self.c_He_all[ix] = self.integrate_coeffs_4d_2(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad_pn, ws_quad_pn, xs_quad, ws_quad)
+            self.c_He_all[ix] = self.integrate_coeffs_4d_2(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad, xs_quad, ws_quad)
             # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
             # self.c_He_target[ix] = self.integrate_coeffs_3d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad)
        
@@ -331,7 +331,8 @@ class coefficients_4d:
                         for l in range(M+1):
                             factorpn4 = (2 * i + 1) * (2 * j + 1) * (2 * k + 1) * (2 * l + 1) / 16
   
-                            factorhe4 = 1 / (math.factorial(i)* math.factorial(j)* math.factorial(k)* math.factorial(l))
+                            # factorhe4 = 1 / (math.factorial(i)* math.factorial(j)* math.factorial(k)* math.factorial(l))
+                            factorhe4 = 1
                             self.c_Pn_all[ix][i, j, k, l] = self.c_Pn_all[ix][i, j, k, l] * factorpn4
                             self.c_He_all[ix][i, j, k, l] = self.c_He_all[ix][i, j, k, l] * factorhe4
 
@@ -413,7 +414,7 @@ class coefficients_4d:
         self.mc_target_he_samples = np.zeros((self.xlist.size, 2**n))
         self.mc_all_he_samples = np.zeros((self.xlist.size, 2**n))
         sample = np.random.normal(size = (2**n, 4))
-        for ix, x in enumerate(tqdm(self.xlist)):
+        for ix, x in enumerate(tqdm(self.xlist_h)):
             self.mc_drive_he_samples[ix] = monte_carlo_he(sample, n, x, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, self.a1, 0, 0, 0, self.t, self.ximax, self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx)
             self.mc_target_he_samples[ix] = monte_carlo_he(sample, n, x, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, 0, self.a2, self.a3, self.a4, self.t, self.ximax, self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx)
             self.mc_all_he_samples[ix] = monte_carlo_he(sample, n, x, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, self.a1, self.a2, self.a3, self.a4, self.t, self.ximax, self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx)

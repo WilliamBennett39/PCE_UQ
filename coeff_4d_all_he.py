@@ -8,11 +8,12 @@ def rmse(list1, list2):
 
 ob = coefficients_4d()
 M=0
-order = 32
+order = 16
 err = 10
 tol = 1e-5
 # ob.make_all_coefficients_he(0, 0)
-ob.make_all_coefficients_he(M, 2)
+ob.make_all_coefficients_he(M, 4)
+ob.save_he_all()
 M_list = [0,1,2,3,4,5,6,7,8,9,10]
 coeffs_old = ob.c_He_all
 it = 0

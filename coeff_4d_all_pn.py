@@ -15,7 +15,7 @@ tol = 1e-8
 ob.make_all_coefficients_pn(M, 2)
 ob.save_pn_all()
 coeffs_old = ob.c_Pn_all
-order_list = [4,5,6,7,8,9,10]
+order_list = [5,6,7,8,9,10]
 it = 0
 while err > tol:
     M = order_list[it]
