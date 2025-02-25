@@ -243,7 +243,7 @@ class coefficients_4d:
         self.c_He_all = np.zeros((self.xlist.size, NHe + 1, NHe + 1, NHe + 1, NHe + 1))
         xs_quad, ws_quad = chaos_quad.hermite(int_pnts, physicist = False)
         xs_quad = xs_quad[0]
-        xs_quad_pn, ws_quad_pn = chaos_quad.legendre_proxy(2*int_pnts, domain =(-1,1))
+        xs_quad_pn, ws_quad_pn = chaos_quad.legendre_proxy(max(2*int_pnts, 64), domain =(-1,1))
         xs_quad_pn = xs_quad_pn[0]
 
         # ws_quad = ws_quad[0]

@@ -14,8 +14,8 @@ tol = 1e-5
 # ob.make_all_coefficients_he(0, 0)
 ob.make_all_coefficients_he(M, 4)
 ob.save_he_all()
-M_list = [1,1,1]
-order_list = [12,14,16]
+M_list = [3]
+order_list = [16,16,16]
 coeffs_old = ob.c_He_all
 it = 0
 while err > tol:
