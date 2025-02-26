@@ -442,8 +442,8 @@ def F1_H_weightf2(x1, x2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, 
     xi = x * Afunc2(x1, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4) / math.sqrt(t)
     integrand = xi * 0
     for ix, xx in enumerate(xi):
-        w = np.exp(-x1[ix]**2/2)
-        integrand[ix] = w * (T0 + a1 * x1[ix]) * interpolated_T(xx, ximax, tt, c, k, equi_spaced, dx)[0] * b_prod(x1[ix], x2, x3, x4, l1, l2, l3, l4, He) / math.sqrt(2*math.pi)
+        w = np.exp(-x1[ix]**2/2) 
+        integrand[ix] = w * (T0 + a1 * x1[ix]) * interpolated_T(xx, ximax, tt, c, k, equi_spaced, dx)[0] * b_prod(x1[ix], x2, x3, x4, l1, l2, l3, l4, He) /math.sqrt(2*math.pi)
     return integrand
 
 # def F2(x2, x3, x4, x1, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
@@ -455,7 +455,7 @@ def F2_custom(x2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, 
     xi = x * Afunc2(0, x2, x3, x4, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4) / math.sqrt(t)
     integrand = xi * 0
     for ix, xx in enumerate(xi):
-        integrand[ix] = (T0 + a1 * 0) * interpolated_T2(xx, ximax, tt, c, k_interp, equi_spaced, dx)[0] * b_prod2(0.0, x2[ix], x3, x4, l1, l2, l3, l4, Pn)
+        integrand[ix] = (T0) * interpolated_T2(xx, ximax, tt, c, k_interp, equi_spaced, dx)[0] * b_prod2(0.0, x2[ix], x3, x4, l1, l2, l3, l4, Pn)
     # print(interpolated_T(0.4, ximax, tt, c, k_interp, equi_spaced, dx))
     return integrand
 
@@ -491,9 +491,15 @@ def integrate_quad_hermite(xs, ws, func1, args):
 def quadruple_integral_nb_1(x2, x3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
         res = x2 * 0
         for it, ix2 in enumerate(x2):
-            wave_cutoff = (-T0 + ((x**2*(cv + a4*x4)*(a2*ix2 + kappa0)*(a3*x3 + rho0)**2)/(t*ximax**2*omega**2))**(1/n))/a1
+            wave_cutoff = -1
+            if a1 != 0:
+                wave_cutoff = (-T0 + ((x**2*(cv + a4*x4)*(a2*ix2 + kappa0)*(a3*x3 + rho0)**2)/(t*ximax**2*omega**2))**(1/n))/a1
+            # if abs(wave_cutoff) <= 1:
+            #     print(wave_cutoff) 
             left_bound = -1
             right_bound = 1
+            if abs(wave_cutoff) < 1:
+                left_bound = wave_cutoff
             # if -1 < wave_cutoff < 1:
                 # left_bound = wave_cutoff
                 # print(left_bound, right_bound, x)
@@ -508,7 +514,13 @@ def quadruple_integral_nb_1(x2, x3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omeg
 def quadruple_integral_nb_2(x3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):
     res = x3 * 0
     for it, ix3 in enumerate(x3):
-        res[it] = integrate_quad(-1, 1, xs, ws, quadruple_integral_nb_1, args = (ix3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+        left_bound = -1.0
+        right_bound = 1.0
+        # wave_cutoff = -((a3**2*cv*x**2*ix3**2*kappa0 + a3**2*a4*x**2*ix3**2*x4*kappa0 + 2*a3*cv*x**2*ix3*kappa0*rho0 + 2*a3*a4*x**2*ix3*x4*kappa0*rho0 + cv*x**2*kappa0*rho0**2 + a4*x**2*x4*kappa0*rho0**2 - t*T0**n*ximax**2*omega**2)/(a2*x**2*(cv + a4*x4)*(a3*ix3 + rho0)**2))
+        # if a1 == 0.0:
+        #     if wave_cutoff > -1 and wave_cutoff < 1:
+        #         left_bound = wave_cutoff
+        res[it] = integrate_quad(left_bound, right_bound, xs, ws, quadruple_integral_nb_1, args = (ix3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
     return res
 
 @njit
@@ -532,9 +544,13 @@ def quadruple_integral_nb_h1(x2, x3, x4, xspn, wspn, x, t, T0, kappa0, rho0, cv,
         for it, ix2 in enumerate(x2):
             wave_cutoff = (-T0 + ((x**2*(cv + a4*x4)*(a2*ix2 + kappa0)*(a3*x3 + rho0)**2)/(t*ximax**2*omega**2))**(1/n))/a1
             right_bound = 2*math.sqrt(-2*logtol)
-            val_right = F1_H_weightf2(np.array([right_bound]), ix2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4) 
+            val_right = F1_H_weightf2(np.array([right_bound]), ix2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4)
+            val_left = F1_H_weightf2(np.array([wave_cutoff]), ix2, x3, x4, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4) 
             if val_right > 1e-16:
                 print('cut off too much', val_right, right_bound)
+            # if abs(val_left) > 1e-6:
+            #     print('wave cutoff incorrect')
+            #     print(val_left)
                 # print('adjusting interval')
             # elif wave_cutoff < 1:
             #     right_bound = wave_cutoff
@@ -570,7 +586,7 @@ def triple_integral_nb_1(x3, x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a
             # elif wave_cutoff < 1:
             #     right_bound = wave_cutoff
 
-            res[it] = integrate_quad(-1, 1, xs, ws, F2_custom, args = (ix3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+            res[it] = integrate_quad(-1, 1, xs, ws, F2_custom, args = (ix3, x4, x, t, T0, kappa0, rho0,cv, omega, n, 0, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
         return res
 @njit
 def triple_integral_nb_2(x4, xs, ws, x, t, T0, kappa0, rho0, cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4):

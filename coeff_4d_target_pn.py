@@ -7,19 +7,23 @@ def rmse(list1, list2):
     return np.mean(np.sqrt((list1-list2)**2))
 
 ob = coefficients_4d()
-M = 8
-order = 4
+M = 0
+order = 128
 err = 10
 tol = 1e-8
-ob.make_target_coefficients_pn(M, order)
-coeffs_old = ob.c_Pn_target
+ob.make_target_coefficients_pn(M, 2)
 
-while err > tol:
-    order = order + 4
-    print(order, 'order')
+coeffs_old = ob.c_Pn_target
+order_list = [0]
+it = 0
+while err > tol and it < len(order_list):
+    # order = order * 2
+    M = order_list[it]
+    print(M, 'M')
     print(err, 'RMSE')
     ob.make_target_coefficients_pn(M, order)
     coeffs_new = ob.c_Pn_target
-    err = rmse(coeffs_new, coeffs_old)
+    # err = rmse(coeffs_new, coeffs_old)
     coeffs_old = coeffs_new
     ob.save_pn_target()
+    it += 1

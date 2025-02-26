@@ -109,7 +109,7 @@ def sample_T_pn(N_samples = 1024):
         # samples_all[ix] = sampler_sobol_4d(n, a1[ix], NN, sample)
         # print(a3[ix][0,0,0,0])
         samples_drive[ix] = sampler_sobol_1d(n, a3[ix], NN, sample)
-        samples_target[ix] = sampler_sobol_3d(n, a2[ix], NN, sample)
+        # samples_target[ix] = sampler_sobol_3d(n, a2[ix], NN, sample)
         # samples_all[ix] = sampler_sobol_4d(n, a1[ix], NN, sample)
 
         # if np.any(samples_drive[ix] > 0.44):
