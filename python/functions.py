@@ -554,8 +554,8 @@ def quadruple_integral_nb_h1(x2, x3, x4, xspn, wspn, x, t, T0, kappa0, rho0, cv,
                 # print('adjusting interval')
             # elif wave_cutoff < 1:
             #     right_bound = wave_cutoff
-            res[it] = integrate_quad(wave_cutoff, right_bound, xspn, wspn, F1_H_weightf2, args = (ix2, x3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
-            # res[it] = integrate_quad_hermite(xspn, wspn, F1_custom_H, args = (ix2, x3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+            # res[it] = integrate_quad(wave_cutoff, right_bound, xspn, wspn, F1_H_weightf2, args = (ix2, x3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
+            res[it] = integrate_quad_hermite(xspn, wspn, F1_custom_H, args = (ix2, x3, x4, x, t, T0, kappa0, rho0,cv, omega, n, a1, a2, a3, a4, ximax, tt, c, k, equi_spaced, dx, l1, l2, l3, l4))
 
         return res
 

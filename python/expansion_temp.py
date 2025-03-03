@@ -283,7 +283,7 @@ class coefficients_4d:
             # self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, 0, 0, 0, M, He, blank_mat_pn, np.inf, x)
             # self.c_He_target[ix] = self.integrate_coeffs_3d(0, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
             # self.c_He_all[ix] = self.integrate_coeffs_4d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, np.inf, x)
-            self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quadpn, ws_quadpn, xs_quad, ws_quad)
+            self.c_He_drive[ix] = self.integrate_coeffs_1d(self.a1, self.a2, self.a3, self.a4, M, He, blank_mat_pn, 1, x, xs_quad, ws_quad, xs_quad, ws_quad)
        
         print('elapsed', time.perf_counter()-tick)
         # self.factors(M)
@@ -453,6 +453,10 @@ class coefficients_4d:
         dset5 = f.create_dataset(f"all", data = quantile_dat_all)
         f.close()
 
+        f2 = f = h5py.File('mc_samples_pn_gigantor.hdf5', 'w')
+        dset = f.create_dataset(f"samples", data = self.mc_all_pn_samples)
+        f2.close()
+
     
 
     def save_mc_he_samples(self):
@@ -486,6 +490,10 @@ class coefficients_4d:
         dset4 = f.create_dataset(f"target", data = quantile_dat_targ)
         dset5 = f.create_dataset(f"all", data = quantile_dat_all)
         f.close()
+
+        f2 = f = h5py.File('mc_samples_he_gigantor.hdf5', 'w')
+        dset = f.create_dataset(f"samples", data = self.mc_all_he_samples)
+        f2.close()
 
 
     # def plot():
