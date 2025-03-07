@@ -1,10 +1,10 @@
 #!/bin/bash
 #$ -M wbennet2@nd.edu
 #$ -m abe
-#$ -N target_pn
+#$ -N MC_samples
 #$ -q long
 
 
 module load python
-python3 coeff_4d_target_pn.py
+python3 MC_sampler.py
 
