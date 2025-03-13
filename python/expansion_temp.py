@@ -13,7 +13,7 @@ from .marshak_ode import solve_marshak
 from .functions import b_prod, Afunc, Pn, He, interpolated_T, nb_integrand, nb_integrand_He, nb_integrand_2_He
 from .functions import integrate_quad, quadruple_integral_nb_4, F1,  quadruple_integral_nb_1, quadruple_integral_nb_3,  quadruple_integral_nb_4
 from .functions import quadruple_integral_nb_h4, quadruple_integral_nb_h1, quadruple_integral_nb_h3, triple_integral_nb_3
-from .functions import monte_carlo_pn, monte_carlo_he, triple_integral_nb_h3
+from .functions import monte_carlo_pn, monte_carlo_he, triple_integral_nb_h3 #, analytic_var
 from .interpolation_experiment import custom_splrep
 import chaospy.quadrature as chaos_quad
 
@@ -163,7 +163,10 @@ class coefficients_4d:
                         # coeffs[i,j,k,m] = triple_integral_nb_h3(np.array([0.0]), xs_pnts, xs_ws, x, self.t, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m)
 
         return coeffs
-
+    # def var_benchmark(self):
+    #     var_benchmark = np.zeros(self.xlist.size)
+    #     for ix, x in enumerate(tqdm(self.xlist)):
+    #         var_benchmark[ix] = analytic_var(x, self.a1, self.a2, self.a3, self.a4)
     def make_all_coefficients_pn(self, M, int_pnts = 40):
         tick = time.perf_counter()
         NPn = int(M)
@@ -177,6 +180,7 @@ class coefficients_4d:
         # ws_quad = quadpy.c1.gauss_legendre(int_pnts).weights
         xs_quad, ws_quad = chaos_quad.legendre_proxy(int_pnts, domain =(-1,1))
         xs_quad = xs_quad[0]
+        
         for ix, x in enumerate(tqdm(self.xlist)):
             # print(ix/self.xlist.size * 100, "percent complete")
             # print(x, 'x')
