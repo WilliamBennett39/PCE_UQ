@@ -85,6 +85,8 @@ class coefficients_4d:
                 for k in range(M+1):
                     for m in range(M+1):
                         if basis == Pn:
+                            # max_order = max(i, j, k, m)
+                            # print(max_order)
                             # coeffs[i,j,k,m] = integrate.nquad(self.integrate_coeffs_temp, [[-L,L],[-L,L],[-L,L]], args = (a1, a2, a3, a4, M, basis, L, x, i, j, k, m), opts = [opts0, opts0, opts0])[0]
                             coeffs[i,j,k,m] = integrate.nquad(nb_integrand, [[-L,L],[-L,L],[-L,L],[-L,L]], args = ( x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m), opts = [opts0, opts0, opts0, opts0])[0]
                         elif basis == He:
@@ -97,9 +99,15 @@ class coefficients_4d:
         dimensionalize = lambda x1, x2, x3, x4: (self.T0 + a1 * x1) * interpolated_T(x * Afunc(x1, x2, x3, x4, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4)/math.sqrt(self.t), self.ximax, self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx)
         integrand = lambda x1, x2, x3, x4, l1, l2, l3, l4: dimensionalize(x1, x2, x3, x4) * b_prod(x1, x2, x3, x4, l1, l2, l3, l4, basis)
         for i in prange(M+1):
-            for j in prange(M+1):
-                for k in prange(M+1):
-                    for m in prange(M+1):
+            for j in range(M+1):
+                for k in range(M+1):
+                    for m in range(M+1):
+                        # max_order = max(i, j, k, m)
+                        # # print(max_order)
+                        # xs_quad, ws_quad = chaos_quad.legendre_proxy(2*max_order + 1, domain =(-1,1))
+                        # xs_quad = xs_quad[0]
+                        # xs_pnts_pn = xs_quad
+                        # xs_ws_pn = ws_quad
                         if basis == Pn:
                             # coeffs[i,j,k,m] = integrate.nquad(self.integrate_coeffs_temp, [[-L,L],[-L,L],[-L,L]], args = (a1, a2, a3, a4, M, basis, L, x, i, j, k, m), opts = [opts0, opts0, opts0])[0]
                             coeffs[i,j,k,m] = quadruple_integral_nb_4(xs_pnts_pn, xs_ws_pn, x, self.t, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m)
@@ -115,7 +123,7 @@ class coefficients_4d:
         k = 0 
         m = 0 
         # print(F1(0, 0, 0, 0, x, self.t, self.T0, self.kappa0, self.rho0, self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax, self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, 0, 0, 0, 0))
-        for i in prange(M+1):
+        for i in range(M+1):
             if basis == Pn:
             # coeffs[i,j,k,m] = integrate.nquad(integrand, [[-L,L]], args = (0, 0, 0, i, j, k, m))[0]
                 # coeffs[i,j,k,m] =integrate.nquad(nb_integrand, [[-L,L]], args = (0, 0, 0, x, self.t, self.T0, self.kappa0, self.rho0,self.cv, self.omega, self.n, a1, a2, a3, a4, self.ximax,  self.interp_t, self.interp_c, self.interp_k, self.interp_equi_spaced, self.interp_dx, i, j, k, m))[0]
